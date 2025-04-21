@@ -5,8 +5,10 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import RemoteControlScreen from './screens/RemoteControlScreen';
 import  HomeScreen from './screens/HomeScreen';
-import SettingsScreen from './screens/SettingsScreen';
 import LoginScreen from './screens/LoginScreen';
+import { ThemeProvider } from './context/ThemeContext';
+import SettingsStack from './screens/SettingsStack'; 
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -34,7 +36,7 @@ function AppNavigator({ setIsAuthenticated }: { setIsAuthenticated: React.Dispat
         />
         <Tab.Screen
           name="Settings"
-          children={() => <SettingsScreen onLogout={() => setIsAuthenticated(false)} />}
+          children={() => <SettingsStack onLogout={() => setIsAuthenticated(false)} />}
         />
       </Tab.Navigator>
     </View>
@@ -45,19 +47,21 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!isAuthenticated ? (
-          <Stack.Screen name="Login">
-            {(props) => <LoginScreen {...props} onLogin={() => setIsAuthenticated(true)} />}
-          </Stack.Screen>
-        ) : (
-          <Stack.Screen name="Home">
-            {(props) => <AppNavigator {...props} setIsAuthenticated={setIsAuthenticated} />}
-          </Stack.Screen>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ThemeProvider>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {!isAuthenticated ? (
+            <Stack.Screen name="Login">
+              {(props) => <LoginScreen {...props} onLogin={() => setIsAuthenticated(true)} />}
+            </Stack.Screen>
+          ) : (
+            <Stack.Screen name="Home">
+              {(props) => <AppNavigator {...props} setIsAuthenticated={setIsAuthenticated} />}
+            </Stack.Screen>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
 

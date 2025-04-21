@@ -1,25 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Svg, Circle } from 'react-native-svg';
+import BackgroundWrapper from '../components/BackgroundWrapper';
+import { useTheme } from '../context/ThemeContext';
 
 const DashboardScreen = () => {
-  const userName = "John Doe"; // Replace with dynamic user info
-  const batteryLevel = 80; // Replace with dynamic data (percentage)
-  const systemStatus = "Active"; // Placeholder, replace with real data
-  const lastActivity = "2 hours ago"; // Placeholder
-  const wheelchairSpeed = "1.2 m/s"; // Placeholder
+  const userName = "John Doe";
+  const batteryLevel = 80;
+  const systemStatus = "Active";
+  const lastActivity = "2 hours ago";
+  const wheelchairSpeed = "1.2 mph";
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
-    <ImageBackground
-      source={require('../assets/Loginbp.jpg')} // Background image
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper>
       <View style={styles.container}>
-        <Text style={styles.welcomeText}>Welcome, {userName}!</Text>
+        <Text style={[styles.welcomeText, { color: isDark ? '#fff' : '#000' }]}>Welcome, {userName}!</Text>
 
         <View style={styles.topSection}>
-          {/* Battery Health Circle */}
           <View style={styles.batteryContainer}>
             <Svg height="120" width="120" viewBox="0 0 100 100">
               <Circle cx="50" cy="50" r="40" stroke="#444" strokeWidth="8" fill="none" />
@@ -35,66 +34,54 @@ const DashboardScreen = () => {
                 strokeLinecap="round"
               />
             </Svg>
-            <Text style={styles.batteryText}>{batteryLevel}%</Text>
+            <Text style={[styles.batteryText, { color: isDark ? 'white' : 'black' }]}>{batteryLevel}%</Text>
           </View>
 
-          {/* System Status Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>System Status</Text>
-            <Text style={styles.cardContent}>{systemStatus}</Text>
+          <View style={[styles.card, isDark ? styles.darkCard : styles.lightCard]}>
+            <Text style={[styles.cardTitle, { color: isDark ? '#fff' : '#000' }]}>System Status</Text>
+            <Text style={[styles.cardContent, { color: isDark ? '#ddd' : '#333' }]}>{systemStatus}</Text>
           </View>
         </View>
 
         <View style={styles.middleSection}>
-          {/* Last Activity Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Last Activity</Text>
-            <Text style={styles.cardContent}>{lastActivity}</Text>
+          <View style={[styles.card, isDark ? styles.darkCard : styles.lightCard]}>
+            <Text style={[styles.cardTitle, { color: isDark ? '#fff' : '#000' }]}>Last Activity</Text>
+            <Text style={[styles.cardContent, { color: isDark ? '#ddd' : '#333' }]}>{lastActivity}</Text>
           </View>
 
-          {/* Wheelchair Speed Indicator */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Speed</Text>
-            <Text style={styles.cardContent}>{wheelchairSpeed}</Text>
+          <View style={[styles.card, isDark ? styles.darkCard : styles.lightCard]}>
+            <Text style={[styles.cardTitle, { color: isDark ? '#fff' : '#000' }]}>Speed</Text>
+            <Text style={[styles.cardContent, { color: isDark ? '#ddd' : '#333' }]}>{wheelchairSpeed}</Text>
           </View>
         </View>
 
-        {/* Quick Access Buttons */}
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.button} onPress={() => { /* Navigate to driving stats */ }}>
-            <Text style={styles.buttonText}>Driving Stats</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => { /* Charging stats */ }}>
-            <Text style={styles.buttonText}>Charging Stats</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => { /* Locate wheelchair */ }}>
-            <Text style={styles.buttonText}>Locate Wheelchair</Text>
-          </TouchableOpacity>
+          {['Driving Stats', 'Charging Stats', 'Locate Wheelchair'].map(label => (
+            <TouchableOpacity
+              key={label}
+              style={[styles.button, isDark ? styles.darkButton : styles.lightButton]}
+              onPress={() => {}}
+            >
+              <Text style={[styles.buttonText, { color: isDark ? '#fff' : '#000' }]}>{label}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 50,
-    width: '90%',
+    justifyContent: 'center',
+    width: '100%',
+    paddingHorizontal: 20,
   },
   welcomeText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -117,12 +104,10 @@ const styles = StyleSheet.create({
   batteryText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
     position: 'absolute',
     top: '40%',
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     padding: 20,
     borderRadius: 12,
     width: '45%',
@@ -132,15 +117,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
   },
+  darkCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  lightCard: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 5,
   },
   cardContent: {
     fontSize: 16,
-    color: '#ddd',
   },
   buttonsContainer: {
     width: '100%',
@@ -148,7 +137,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)', // Translucent button
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,
@@ -156,19 +144,17 @@ const styles = StyleSheet.create({
     width: '80%',
     alignItems: 'center',
   },
-  emergencyButton: {
-    backgroundColor: 'rgba(255, 59, 48, 0.7)', // Translucent emergency button
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
+  darkButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  lightButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#fff',
   },
 });
+
 
 export default DashboardScreen;

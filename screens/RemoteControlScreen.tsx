@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ImageBackground, Dimensions, Platform } from 'react-native';
-import { WebView } from 'react-native-webview';  // Import WebView
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions, Platform } from 'react-native';
+import { WebView } from 'react-native-webview';
+import BackgroundWrapper from '../components/BackgroundWrapper';
+import { useTheme } from '../context/ThemeContext';
 
-const { width, height } = Dimensions.get('window'); // Get screen dimensions
-
-const loadingThreshold = Platform.OS === 'ios' ? 0.88 : 0.78; // Adjust threshold
+const { width, height } = Dimensions.get('window');
+const loadingThreshold = Platform.OS === 'ios' ? 0.88 : 0.78;
 
 const JAVASCRIPT_TO_DISABLE_ZOOM = `
   (function() {
@@ -15,101 +16,148 @@ const JAVASCRIPT_TO_DISABLE_ZOOM = `
   })();
 `;
 
+const ESP32_S3_IP = 'http://10.251.92.164';
+
 export function LiveStreamingView() {
-  const [progress, setProgress] = useState(0);  // Track loading progress
-  const [isError, setIsError] = useState(false); // Error state
+  const [statusMessage, setStatusMessage] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [isError, setIsError] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
-  const handleForward = () => console.log("Move forward");
-  const handleBackward = () => console.log("Move backward");
-  const handleLeft = () => console.log("Move left");
-  const handleRight = () => console.log("Move right");
+  const sendCommand = async (command) => {
+    try {
+      await fetch(`${ESP32_S3_IP}/command`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: command,
+      });
 
-  if (isError) return <Text style={styles.errorMessage}>Error loading stream</Text>;
+      const pretty = {
+        forward: 'Moving forward',
+        backward: 'Moving backward',
+        left: 'Turning left',
+        right: 'Turning right',
+        stop: 'Stopping motors',
+      };
+      setStatusMessage(pretty[command] || `Sent: ${command}`);
+    } catch (error) {
+      console.error('Error sending command:', error);
+      setStatusMessage('Failed to send command');
+    }
+  };
+
+  const handleCommandPressIn = (command) => sendCommand(command);
+  const handleCommandPressOut = () => sendCommand('stop');
+
+  if (isError)
+    return (
+      <Text style={{ color: 'red', fontSize: 18, fontWeight: 'bold', textAlign: 'center', marginTop: 50 }}>
+        Error loading stream
+      </Text>
+    );
 
   return (
-    <ImageBackground 
-      source={require('../assets/Loginbp.jpg')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <BackgroundWrapper>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <Text style={styles.title}>Camera View</Text>
+        <Text style={[styles.title, { color: isDark ? 'white' : 'black' }]}>Camera View</Text>
 
-        {/* MJPEG stream using WebView with progress and error handling */}
         <View style={styles.streamContainer}>
           <WebView
-            source={{ uri: 'http://10.169.0.13' }}  // Replace with your MJPG stream URL
+            source={{ uri: 'http://10.169.1.62' }}
             style={styles.streamVideo}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            originWhitelist={['*']}  // Allow cross-origin requests
-            mixedContentMode="always" // For mixed HTTP/HTTPS content
+            javaScriptEnabled
+            domStorageEnabled
+            originWhitelist={['*']}
+            mixedContentMode="always"
             onError={() => setIsError(true)}
-            onLoadProgress={({ nativeEvent }) => setProgress(nativeEvent.progress)} // Track load progress
+            onLoadProgress={({ nativeEvent }) => setProgress(nativeEvent.progress)}
             renderLoading={() => (progress < loadingThreshold ? <Text>Loading...</Text> : <></>)}
-            onHttpError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.log('HTTP error: ', nativeEvent.statusCode);
-            }}
             onLoad={() => console.log('Stream loaded successfully')}
-            startInLoadingState={true}
+            startInLoadingState
             bounces={false}
             scrollEnabled={false}
-            setBuiltInZoomControls={false}
             injectedJavaScript={JAVASCRIPT_TO_DISABLE_ZOOM}
-            onMessage={() => {}}
           />
         </View>
 
-        {/* Direction control buttons */}
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.button} onPress={handleForward}>
-            <Text style={styles.buttonText}>↑</Text>
-          </TouchableOpacity>
-        </View>
+        {['↑', '← →', '↓'].map((labelRow, i) => (
+          <View key={i} style={styles.buttonRow}>
+            {labelRow.split(' ').map((label, j) => (
+              <TouchableOpacity
+                key={j}
+                style={[styles.button, isDark ? styles.darkButton : styles.lightButton]}
+                onPressIn={() => {
+                  switch (label) {
+                    case '↑': handleCommandPressIn('forward'); break;
+                    case '↓': handleCommandPressIn('backward'); break;
+                    case '←': handleCommandPressIn('left'); break;
+                    case '→': handleCommandPressIn('right'); break;
+                    default: break;
+                  }
+                }}
+                onPressOut={handleCommandPressOut}
+              >
+                <Text style={[styles.buttonText, { color: isDark ? 'white' : 'black' }]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ))}
 
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.button} onPress={handleLeft}>
-            <Text style={styles.buttonText}>←</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={handleRight}>
-            <Text style={styles.buttonText}>→</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.button} onPress={handleBackward}>
-            <Text style={styles.buttonText}>↓</Text>
-          </TouchableOpacity>
+        {/* Live ESP32 status message */}
+        <View style={{ paddingBottom: 40 }}>
+          <Text style={{
+            fontSize: 16,
+            padding: 10,
+            textAlign: 'center',
+            backgroundColor: isDark ? '#444' : '#eee',
+            color: isDark ? '#fff' : '#000',
+            borderRadius: 10,
+            overflow: 'hidden',
+          }}>
+            {statusMessage || 'Waiting for command...'}
+          </Text>
         </View>
       </ScrollView>
-    </ImageBackground>
+    </BackgroundWrapper>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   scrollContainer: {
     alignItems: 'center',
     paddingVertical: 20,
+    paddingBottom: 100,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: 'white',
   },
+  streamContainer: {
+    width: width * 0.8,
+    height: height * 0.35,
+    marginBottom: 20,
+    overflow: 'hidden',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'gray',
+  },
+  
+  streamVideo: {
+    flex: 1,
+    alignSelf: 'stretch',
+    borderWidth: 1,
+    borderColor: 'gray',
+    backgroundColor: 'black',
+  },
+  
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 20,
   },
   button: {
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     padding: 10,
     borderRadius: 50,
     marginVertical: -7.5,
@@ -117,29 +165,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  darkButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  lightButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
   buttonText: {
     fontSize: 25,
-    color: 'white',
   },
-  streamContainer: {
-    marginBottom: 20,
-    alignItems: 'center',
-    maxHeight: height * 0.4,
-  },
-  streamVideo: {
-    width: width * 0.9,
-    height: height * 0.3,
-    borderWidth: 1,
-    borderColor: 'gray',
-    backgroundColor: 'black', // Background color while loading
-  },
-  errorMessage: {
-    color: 'red',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 50,
-  }
 });
 
 export default LiveStreamingView;
