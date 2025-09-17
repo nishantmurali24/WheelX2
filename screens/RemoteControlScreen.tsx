@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 const { width, height } = Dimensions.get('window');
 const loadingThreshold = Platform.OS === 'ios' ? 0.88 : 0.78;
 
+//Had a problem with displaying the camera view and found that disabling zoom works
 const JAVASCRIPT_TO_DISABLE_ZOOM = `
   (function() {
     const meta = document.createElement('meta');
@@ -16,7 +17,7 @@ const JAVASCRIPT_TO_DISABLE_ZOOM = `
   })();
 `;
 
-const ESP32_S3_IP = 'http://10.251.92.164';
+const ESP32_S3_IP = 'http://10.250.149.119'; //The IP produced by the ESP32-S3
 
 export function LiveStreamingView() {
   const [statusMessage, setStatusMessage] = useState('');
@@ -25,7 +26,7 @@ export function LiveStreamingView() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const sendCommand = async (command) => {
+  const sendCommand = async (command) => {          //Fetches the command sent to the ESP32-S3's IP
     try {
       await fetch(`${ESP32_S3_IP}/command`, {
         method: 'POST',
@@ -40,14 +41,17 @@ export function LiveStreamingView() {
         right: 'Turning right',
         stop: 'Stopping motors',
       };
-      setStatusMessage(pretty[command] || `Sent: ${command}`);
+      setStatusMessage(pretty[command] || `Sent: ${command}`);  //Displaying the command recevied on the app
     } catch (error) {
       console.error('Error sending command:', error);
       setStatusMessage('Failed to send command');
     }
   };
-
+  // Called when a directional button is pressed down
+  // Sends the specific movement command to the ESP32
   const handleCommandPressIn = (command) => sendCommand(command);
+  // Called when a directional button is released
+  // Sends a 'stop' command to halt movement
   const handleCommandPressOut = () => sendCommand('stop');
 
   if (isError)
@@ -64,7 +68,7 @@ export function LiveStreamingView() {
 
         <View style={styles.streamContainer}>
           <WebView
-            source={{ uri: 'http://10.169.1.62' }}
+            source={{ uri: 'http://10.250.94.71/' }}      //Uses WebView package to pull live stream for ESP32-CAM IP
             style={styles.streamVideo}
             javaScriptEnabled
             domStorageEnabled
@@ -81,7 +85,8 @@ export function LiveStreamingView() {
           />
         </View>
 
-        {['↑', '← →', '↓'].map((labelRow, i) => (
+        {['↑', '← →', '↓'].map((labelRow, i) => ( // Render directional control buttons in three rows: Up, Left-Right, Down
+
           <View key={i} style={styles.buttonRow}>
             {labelRow.split(' ').map((label, j) => (
               <TouchableOpacity
