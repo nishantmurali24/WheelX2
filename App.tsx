@@ -1,45 +1,40 @@
-import React, { useState } from 'react';
+import 'react-native-gesture-handler'; // MUST be top of file
+import { enableScreens } from 'react-native-screens';
+enableScreens();import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
+
 import RemoteControlScreen from './screens/RemoteControlScreen';
-import  HomeScreen from './screens/HomeScreen';
+import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
 import { ThemeProvider } from './context/ThemeContext';
 import SettingsStack from './screens/SettingsStack'; 
-
+import VoiceControlScreen from './screens/VoiceControlScreen';
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator(); // Use native stack
 
 function AppNavigator({ setIsAuthenticated }: { setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
-    <View style={styles.container}>
-      <Tab.Navigator
-        screenOptions={{
-          tabBarStyle: {
-            backgroundColor: 'black', // Makes the tab bar black
-          },
-          tabBarActiveTintColor: 'white', // Active tab color
-          tabBarInactiveTintColor: 'gray', // Inactive tab color
-          headerStyle: { backgroundColor: 'black' }, // Header background black
-          headerTitleStyle: { color: 'white' }, // Header text color
-        }}>
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-        />
-        <Tab.Screen
-          name="Controls"
-          component={RemoteControlScreen}
-        />
-        <Tab.Screen
-          name="Settings"
-          children={() => <SettingsStack onLogout={() => setIsAuthenticated(false)} />}
-        />
-      </Tab.Navigator>
-    </View>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: { backgroundColor: 'black' },
+        tabBarActiveTintColor: 'white',
+        tabBarInactiveTintColor: 'gray',
+        headerStyle: { backgroundColor: 'black' },
+        headerTitleStyle: { color: 'white' },
+      }}>
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Voice Controls" component={VoiceControlScreen} />
+      <Tab.Screen name="Remote Controls" component={RemoteControlScreen} />
+      <Tab.Screen
+        name="Settings"
+        children={() => <SettingsStack onLogout={() => setIsAuthenticated(false)} />}
+      />
+    </Tab.Navigator>
   );
 }
 
@@ -64,9 +59,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});
