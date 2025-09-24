@@ -146,7 +146,8 @@ const DashboardScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 40,
+    paddingTop: 60,
     justifyContent: 'flex-start',
   },
   welcomeText: {

@@ -1,21 +1,22 @@
-import 'react-native-gesture-handler'; // MUST be top of file
+import 'react-native-gesture-handler';
 import { enableScreens } from 'react-native-screens';
-enableScreens();import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+enableScreens();
+
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
 import RemoteControlScreen from './screens/RemoteControlScreen';
 import HomeScreen from './screens/HomeScreen';
 import LoginScreen from './screens/LoginScreen';
+import CreateAccountScreen from './screens/CreateAccountScreen';
 import { ThemeProvider } from './context/ThemeContext';
 import SettingsStack from './screens/SettingsStack'; 
 import VoiceControlScreen from './screens/VoiceControlScreen';
 
 const Tab = createBottomTabNavigator();
-const Stack = createNativeStackNavigator(); // Use native stack
+const Stack = createNativeStackNavigator();
 
 function AppNavigator({ setIsAuthenticated }: { setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
@@ -46,12 +47,22 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {!isAuthenticated ? (
-            <Stack.Screen name="Login">
-              {(props) => <LoginScreen {...props} onLogin={() => setIsAuthenticated(true)} />}
-            </Stack.Screen>
+            <>
+              <Stack.Screen name="Login">
+                {(props) => (
+                  <LoginScreen
+                    {...props}
+                    onLogin={() => setIsAuthenticated(true)}
+                  />
+                )}
+              </Stack.Screen>
+              <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+            </>
           ) : (
-            <Stack.Screen name="Home">
-              {(props) => <AppNavigator {...props} setIsAuthenticated={setIsAuthenticated} />}
+            <Stack.Screen name="MainApp">
+              {(props) => (
+                <AppNavigator {...props} setIsAuthenticated={setIsAuthenticated} />
+              )}
             </Stack.Screen>
           )}
         </Stack.Navigator>

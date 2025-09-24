@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.4",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-picker/picker": "^2.11.2",
     "@react-navigation/bottom-tabs": "^7.4.7",
     "@react-navigation/native": "^7.1.17",
     "@react-navigation/native-stack": "^7.3.3",
@@ -19,6 +21,7 @@
     "express": "^5.1.0",
     "react": "19.0.0",
     "react-native": "0.78.1",
+    "react-native-dropdown-picker": "^5.4.6",
     "react-native-gesture-handler": "^2.28.0",
     "react-native-mjpeg": "^0.5.0",
     "react-native-safe-area-context": "^5.6.1",
